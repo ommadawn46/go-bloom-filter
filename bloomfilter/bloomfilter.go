@@ -74,7 +74,7 @@ func (bf *BloomFilter) Contains(elem []byte) bool {
 	return true
 }
 
-// FalsePositiveProbability calc probability of false negative
+// FalsePositiveProbability calc probability of false positive
 func (bf *BloomFilter) FalsePositiveProbability() float64 {
 	m, k, n := float64(bf.M), float64(bf.K), float64(bf.N)
 	return math.Pow(
