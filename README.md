@@ -15,8 +15,8 @@ FP Actual: 0.00000800
 goos: darwin
 goarch: amd64
 pkg: github.com/ommadawn46/go-bloom-filter/bloomfilter
-BenchmarkAdd-4                 3         407660192 ns/op        156954210 B/op   2400299 allocs/op
-BenchmarkContains-4            5         259917759 ns/op        156036747 B/op   2400199 allocs/op
+BenchmarkAdd-4                 5         246502854 ns/op        41715152 B/op    1800073 allocs/op
+BenchmarkContains-4           10         154117491 ns/op        40810011 B/op    1800049 allocs/op
 PASS
-ok      github.com/ommadawn46/go-bloom-filter/bloomfilter       4.427s
+ok      github.com/ommadawn46/go-bloom-filter/bloomfilter       4.179s
 ```

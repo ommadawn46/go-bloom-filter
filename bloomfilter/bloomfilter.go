@@ -1,7 +1,7 @@
 package bloomfilter
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"encoding/binary"
 	"math"
 )
@@ -42,22 +42,28 @@ func NewBloomFilter(m uint, k uint) *BloomFilter {
 	}
 }
 
-func getDigests(elem []byte) []uint {
-	digest := sha256.Sum256(elem)
+func getDigests(k uint, elem []byte) []uint {
+	digest := md5.Sum(elem)
 	digests := []uint{}
-	for i := 0; i < len(digest)-8; i++ {
-		digests = append(
-			digests,
-			uint(binary.BigEndian.Uint64(digest[i:i+8])),
-		)
+	n := uint(0)
+	for i := 0; i+8 <= len(digest); i++ {
+		d1 := uint(binary.BigEndian.Uint64(digest[i : i+8]))
+		for j := i + 1; j+8 <= len(digest); j++ {
+			d2 := uint(binary.LittleEndian.Uint64(digest[j : j+8]))
+			digests, n = append(digests, d1^d2), n+1
+			if (1<<n)-1 >= k {
+				return digests
+			}
+		}
 	}
 	return digests
 }
 
 func getHashNum(idx uint, digests []uint) uint {
+	mask := idx + 1
 	hashNum := uint(0)
-	for i := uint(0); i < uint(len(digests)); i++ {
-		if ((idx+1)>>i)&1 == 0 {
+	for i := uint(0); (mask >> i) != 0; i++ {
+		if (mask>>i)&1 == 0 {
 			continue
 		}
 		hashNum ^= digests[i]
@@ -67,7 +73,7 @@ func getHashNum(idx uint, digests []uint) uint {
 
 // Add append an element into filter
 func (bf *BloomFilter) Add(elem []byte) {
-	digests := getDigests(elem)
+	digests := getDigests(bf.K, elem)
 	for i := uint(0); i < bf.K; i++ {
 		hashNum := getHashNum(i, digests) % bf.M
 		bf.filter[hashNum/8] |= 1 << uint(hashNum%8)
@@ -77,7 +83,7 @@ func (bf *BloomFilter) Add(elem []byte) {
 
 // Contains check an element is included in filter
 func (bf *BloomFilter) Contains(elem []byte) bool {
-	digests := getDigests(elem)
+	digests := getDigests(bf.K, elem)
 	for i := uint(0); i < bf.K; i++ {
 		hashNum := getHashNum(i, digests) % bf.M
 		if bf.filter[hashNum/8]&(1<<uint(hashNum%8)) == 0 {
