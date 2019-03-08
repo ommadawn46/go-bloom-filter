@@ -11,7 +11,7 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	p, n := 1e-5, uint(300000)
+	p, n := 1e-5, uint(1000000)
 
 	m := bloomfilter.OptimizeM(p, n)
 	k := bloomfilter.OptimizeK(m, n)
@@ -43,7 +43,7 @@ func main() {
 	fp := float64(fpCount) / float64(n)
 
 	fmt.Printf(
-		"N: %d\nM: %dbits (%dKiB)\nK: %d\nFN: %.8f\nFP Predict: %.8f\nFP Actual: %.8f\n",
-		bf.N, bf.M, bf.M/(8*1024), bf.K, fn, bf.FalsePositiveProbability(), fp,
+		"N: %d\nM: %d (%.2fMiB)\nK: %d\nFN: %.8f\nFP Predict: %.8f\nFP Actual: %.8f\n",
+		bf.N, bf.M, float64(bf.M)/(8*1024*1024), bf.K, fn, bf.FalsePositiveProbability(), fp,
 	)
 }

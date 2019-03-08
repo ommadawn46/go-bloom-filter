@@ -2,7 +2,7 @@ package bloomfilter
 
 import (
 	"crypto/sha256"
-	"fmt"
+	"encoding/binary"
 	"math"
 )
 
@@ -42,22 +42,34 @@ func NewBloomFilter(m uint, k uint) *BloomFilter {
 	}
 }
 
-func (bf *BloomFilter) getHashNum(idx uint, elem []byte) uint {
-	digest := sha256.Sum256(append(
-		[]byte(fmt.Sprint(idx)),
-		elem...,
-	))
+func getDigests(elem []byte) []uint {
+	digest := sha256.Sum256(elem)
+	digests := []uint{}
+	for i := 0; i < len(digest)-8; i++ {
+		digests = append(
+			digests,
+			uint(binary.BigEndian.Uint64(digest[i:i+8])),
+		)
+	}
+	return digests
+}
+
+func getHashNum(idx uint, digests []uint) uint {
 	hashNum := uint(0)
-	for _, b := range digest {
-		hashNum = ((hashNum << 8) + uint(b)) % bf.M
+	for i := uint(0); i < uint(len(digests)); i++ {
+		if ((idx+1)>>i)&1 == 0 {
+			continue
+		}
+		hashNum ^= digests[i]
 	}
 	return hashNum
 }
 
 // Add append an element into filter
 func (bf *BloomFilter) Add(elem []byte) {
+	digests := getDigests(elem)
 	for i := uint(0); i < bf.K; i++ {
-		hashNum := bf.getHashNum(i, elem)
+		hashNum := getHashNum(i, digests) % bf.M
 		bf.filter[hashNum/8] |= 1 << uint(hashNum%8)
 	}
 	bf.N++
@@ -65,8 +77,9 @@ func (bf *BloomFilter) Add(elem []byte) {
 
 // Contains check an element is included in filter
 func (bf *BloomFilter) Contains(elem []byte) bool {
+	digests := getDigests(elem)
 	for i := uint(0); i < bf.K; i++ {
-		hashNum := bf.getHashNum(i, elem)
+		hashNum := getHashNum(i, digests) % bf.M
 		if bf.filter[hashNum/8]&(1<<uint(hashNum%8)) == 0 {
 			return false
 		}

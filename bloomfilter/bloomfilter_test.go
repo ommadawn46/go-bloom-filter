@@ -10,7 +10,7 @@ var m, k, n uint
 var bf *BloomFilter
 
 func init() {
-	p, n = 1e-4, uint(100000)
+	p, n = 1e-5, uint(300000)
 	m = OptimizeM(p, n)
 	k = OptimizeK(m, n)
 	bf = NewBloomFilter(m, k)
