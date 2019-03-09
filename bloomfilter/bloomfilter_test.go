@@ -15,14 +15,14 @@ func init() {
 	k = OptimizeK(m, n)
 	bf = NewBloomFilter(m, k)
 	for i := uint(0); i < n; i++ {
-		bf.Add([]byte(fmt.Sprint(i)))
+		bf.Add([]byte(fmt.Sprintf("init%d", i)))
 	}
 }
 
 func BenchmarkAdd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tmpBf := NewBloomFilter(m, k)
-		baseStr := fmt.Sprint(i)
+		baseStr := fmt.Sprintf("BenchmarkAdd%d-", i)
 		for j := uint(0); j < n; j++ {
 			tmpBf.Add([]byte(baseStr + fmt.Sprint(j)))
 		}
@@ -31,7 +31,7 @@ func BenchmarkAdd(b *testing.B) {
 
 func BenchmarkContains(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		baseStr := fmt.Sprint(i)
+		baseStr := fmt.Sprintf("BenchmarkContains%d-", i)
 		for j := uint(0); j < n; j++ {
 			bf.Contains([]byte(baseStr + fmt.Sprint(j)))
 		}
